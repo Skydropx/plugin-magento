@@ -1,0 +1,35 @@
+{
+    "name": "skydropx/module-shipping",
+    "description": "PLUGIN_DESCRIPTION",
+    "type": "magento2-module",
+    "version": "PLUGIN_VERSION",
+    "license": "proprietary",
+    "homepage": "PLUGIN_AUTHOR_URI",
+    "authors": [
+        {
+            "name": "PLUGIN_AUTHOR",
+            "homepage": "PLUGIN_AUTHOR_URI"
+        }
+    ],
+    "require": {
+        "php": "~8.1.0||~8.2.0||~8.3.0||~8.4.0",
+        "magento/framework": "^103.0.4",
+        "magento/module-shipping": "*",
+        "magento/module-quote": "*",
+        "magento/module-sales": "*",
+        "magento/module-integration": "*",
+        "magento/module-config": "*",
+        "magento/module-store": "*",
+        "magento/module-backend": "*",
+        "magento/module-directory": "*",
+        "magento/module-catalog": "*"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Skydropx\\Shipping\\": ""
+        }
+    }
+}

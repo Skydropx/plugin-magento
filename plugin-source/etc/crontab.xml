@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="default">
+        <job name="skydropx_push_orders" instance="Skydropx\Shipping\Cron\PushOrders" method="execute">
+            <schedule>* * * * *</schedule>
+        </job>
+        <job name="skydropx_purge_outbox" instance="Skydropx\Shipping\Cron\PurgeOutbox" method="execute">
+            <schedule>15 3 * * *</schedule>
+        </job>
+        <job name="skydropx_cleanup_integrations" instance="Skydropx\Shipping\Cron\CleanupIntegrations" method="execute">
+            <schedule>0 * * * *</schedule>
+        </job>
+    </group>
+</config>

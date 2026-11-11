@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
+    <!-- setup_version is fixed on purpose and does not follow the package version: it only makes Magento
+         write the setup_module row, without which module:uninstall never finds Setup\Uninstall.
+         Bumping it to the package version would break setup:upgrade on a downgrade. -->
+    <module name="Skydropx_Shipping" setup_version="1.0.0">
+        <sequence>
+            <module name="Magento_Shipping"/>
+            <module name="Magento_Quote"/>
+            <module name="Magento_Sales"/>
+            <module name="Magento_Integration"/>
+            <module name="Magento_Config"/>
+            <module name="Magento_Store"/>
+            <module name="Magento_Backend"/>
+            <module name="Magento_Directory"/>
+            <module name="Magento_Catalog"/>
+        </sequence>
+    </module>
+</config>

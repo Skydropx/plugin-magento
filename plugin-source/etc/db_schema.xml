@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <!-- Transactional outbox for order push (contract §3). No FK to sales_order on purpose. -->
+    <table name="skydropx_order_event" resource="default" engine="innodb" comment="Order push outbox">
+        <column xsi:type="int" name="event_id" unsigned="true" nullable="false" identity="true" comment="Event ID"/>
+        <column xsi:type="int" name="order_id" unsigned="true" nullable="false" identity="false" comment="Order entity ID"/>
+        <column xsi:type="varchar" name="increment_id" length="50" nullable="false" comment="Order increment ID"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="true" identity="false" comment="Store ID"/>
+        <column xsi:type="varchar" name="event" length="32" nullable="false" comment="Event name"/>
+        <column xsi:type="varchar" name="state" length="32" nullable="false" comment="Order state"/>
+        <column xsi:type="varchar" name="status" length="32" nullable="true" comment="Order status"/>
+        <column xsi:type="text" name="payload" nullable="false" comment="JSON payload without sent_at"/>
+        <column xsi:type="varchar" name="delivery_status" length="16" nullable="false" default="pending" comment="pending, sent or failed"/>
+        <column xsi:type="smallint" name="attempts" unsigned="true" nullable="false" identity="false" default="0" comment="Delivery attempts"/>
+        <column xsi:type="timestamp" name="next_attempt_at" on_update="false" nullable="true" comment="Next attempt at"/>
+        <column xsi:type="varchar" name="last_error" length="255" nullable="true" comment="Last error"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created at"/>
+        <column xsi:type="timestamp" name="sent_at" on_update="false" nullable="true" comment="Sent at"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="event_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="SKYDROPX_ORDER_EVENT_ORDER_ID_EVENT_STATE">
+            <column name="order_id"/>
+            <column name="event"/>
+            <column name="state"/>
+        </constraint>
+        <index referenceId="SKYDROPX_ORDER_EVENT_DELIVERY_STATUS_NEXT_ATTEMPT_AT" indexType="btree">
+            <column name="delivery_status"/>
+            <column name="next_attempt_at"/>
+        </index>
+        <index referenceId="SKYDROPX_ORDER_EVENT_CREATED_AT" indexType="btree">
+            <column name="created_at"/>
+        </index>
+    </table>
+</schema>
