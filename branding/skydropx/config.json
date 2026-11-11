@@ -1,0 +1,21 @@
+{
+  "plugin_name": "Skydropx",
+  "plugin_slug": "skydropx",
+  "plugin_description": "Despreocúpate de toda la logística de envíos de tu negocio con una sola herramienta. Cotiza entre más de 30 paqueterías y comienza a enviar desde México y Colombia, hoy.",
+  "plugin_author": "Skydropx",
+  "plugin_author_uri": "https://pro.skydropx.com",
+  "urls": {
+    "local": {
+      "ecommerce": "NGROK_URL",
+      "app": "http://skydropx.localhost.skydropx:3000"
+    },
+    "sandbox": {
+      "ecommerce": "https://sb-ecommerce-pro.skydropx.com",
+      "app": "https://sb-pro.skydropx.com"
+    },
+    "production": {
+      "ecommerce": "https://ecommerce.pro.skydropx.com",
+      "app": "https://pro.skydropx.com"
+    }
+  }
+}
