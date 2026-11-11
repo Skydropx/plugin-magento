@@ -1,0 +1,162 @@
+# Local Magento 2.4.8 (PHP 8.3 + MySQL 8.0 + OpenSearch 2.19) for the Skydropx module (HU-8).
+#
+# ALWAYS use the `default` Docker context (this machine has two) and pick exactly ONE profile.
+# Both profiles publish 127.0.0.1:8092, so they never run at the same time.
+#
+#   Store: http://localhost:8092/      Admin: http://localhost:8092/admin   (admin / Admin123!)
+#   MySQL: 127.0.0.1:3391              (magento / magento, root / magento; database `magento`)
+#
+# Services per profile (db and opensearch have no profile, so they start with either one):
+#   --profile dev  -> service `magento`      mounts ../plugin-source at app/code/Skydropx/Shipping
+#   --profile e2e  -> service `magento-e2e`  mounts ../builds (read-only) at /artifacts, no app/code mount
+# Both share the named volumes (Magento code, MySQL, OpenSearch): switching profiles never reinstalls.
+#
+# Run Magento/Composer as www-data (Apache's user) so no root-owned files end up in var/ or generated/:
+#
+#   C="docker --context default compose -f docker/docker-compose.yml"
+#
+#   # dev
+#   $C --profile dev up -d --build --wait --wait-timeout 3600     # first boot: ~20-40 min
+#   $C --profile dev exec -T -u www-data magento setup-store
+#   $C --profile dev exec -T -u www-data magento vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist \
+#       app/code/Skydropx/Shipping/Test/Unit/Model/SignerTest.php
+#   $C --profile dev exec -T -u www-data magento bin/magento setup:upgrade
+#   $C --profile dev exec -T -u www-data magento bin/magento setup:di:compile
+#   $C --profile dev down                                         # keeps volumes; never add -v
+#
+#   # e2e (after `--profile dev down`)
+#   $C --profile e2e up -d --build --wait --wait-timeout 3600
+#   $C --profile e2e exec -T -u www-data magento-e2e setup-store
+#   $C --profile e2e exec -T -u www-data magento-e2e composer config repositories.skydropx artifact /artifacts
+#   $C --profile e2e exec -T -u www-data magento-e2e composer require skydropx/module-shipping:<version>
+#   $C --profile e2e exec -T -u www-data magento-e2e bin/magento setup:upgrade
+#   $C --profile e2e exec -T -u www-data magento-e2e bin/magento setup:di:compile
+#   $C --profile e2e exec -T -u www-data magento-e2e bin/magento cache:enable skydropx_rates
+#   $C --profile e2e exec -T -u www-data magento-e2e bin/magento cache:flush
+#   (Composer's artifact repo reads every zip in /artifacts: if builds/ holds two zips with the same
+#   version, e.g. both brands, Composer may pick either. Keep only the zip under test in builds/.)
+#   To update the zip with the same version: `composer remove --no-plugins skydropx/module-shipping`,
+#   `composer clear-cache`, then `composer require` again.
+#
+# NEVER `composer remove skydropx/module-shipping` WITHOUT `--no-plugins` while the dev profile is up:
+# magento/magento-composer-installer deletes app/code/Skydropx/Shipping on uninstall, and in dev that is
+# the ../plugin-source bind mount (the module's source code on the host).
+#
+# Module registration when switching profiles (app/etc/config.php lives in the shared volume):
+#   dev -> e2e: config.php still lists Skydropx_Shipping, but its code is gone (no mount, nothing in vendor/).
+#     Magento ignores modules it can't find on disk, but the cached config and generated/ still reference
+#     them. The e2e entrypoint runs `bin/magento setup:upgrade`, which drops the module from config.php
+#     and clears generated/. Its tables (skydropx_order_event) and core_config_data rows stay in the DB.
+#     The fix by hand is the same command: `bin/magento setup:upgrade`.
+#   e2e -> dev: vendor/skydropx/module-shipping would clash with the app/code mount ("module already
+#     defined"). The dev entrypoint unsets repositories.skydropx, runs `composer remove --no-plugins
+#     --no-scripts skydropx/module-shipping` (only vendor/ is touched) and then `bin/magento setup:upgrade`.
+#     If that cleanup fails, the container still starts (module:enable/setup:upgrade skipped) and the log shows
+#     "ERROR: could not remove …" with the manual fix; restart the container after applying it.
+#
+# Readiness: the entrypoint prints "[magento-docker] READY" and creates /run/magento-ready;
+# the healthcheck needs that file plus a 200 from pub/health_check.php, so `up --wait` blocks until then.
+# No cron sidecar: run `bin/magento cron:run` or `bin/magento skydropx:orders:push` by hand.
+name: magento-e2e
+
+x-magento: &magento
+  build:
+    context: .
+  image: magento-e2e/magento:2.4.8-local
+  ports:
+    - "127.0.0.1:8092:80"
+  environment: &magento-env
+    MAGENTO_VERSION: "2.4.8"
+    MAGENTO_BASE_URL: http://localhost:8092/
+    DB_HOST: db
+    DB_NAME: magento
+    DB_USER: magento
+    DB_PASSWORD: magento
+    OPENSEARCH_HOST: opensearch
+    OPENSEARCH_PORT: "9200"
+    ADMIN_USER: admin
+    ADMIN_PASSWORD: Admin123!
+    ADMIN_EMAIL: admin@example.com
+    # Optional (R15): only needed if the Mage-OS mirror is down and repo.magento.com keys are used.
+    COMPOSER_AUTH: ${COMPOSER_AUTH:-}
+  extra_hosts:
+    # Lets Magento reach eco on the host (:8000) without a tunnel (D11).
+    - "host.docker.internal:host-gateway"
+  depends_on:
+    db:
+      condition: service_healthy
+    opensearch:
+      condition: service_healthy
+  healthcheck:
+    test: ["CMD-SHELL", "test -f /run/magento-ready && curl -fsS -o /dev/null http://localhost/health_check.php"]
+    interval: 15s
+    timeout: 10s
+    retries: 5
+    # First boot runs composer install + setup:install.
+    start_period: 60m
+    start_interval: 15s
+
+services:
+  magento:
+    <<: *magento
+    profiles: ["dev"]
+    environment:
+      <<: *magento-env
+      MAGENTO_DOCKER_PROFILE: dev
+    volumes:
+      - magento_html:/var/www/html
+      - ../plugin-source:/var/www/html/app/code/Skydropx/Shipping
+
+  magento-e2e:
+    <<: *magento
+    profiles: ["e2e"]
+    environment:
+      <<: *magento-env
+      MAGENTO_DOCKER_PROFILE: e2e
+    volumes:
+      - magento_html:/var/www/html
+      - ../builds:/artifacts:ro
+
+  db:
+    image: mysql:8.0
+    command:
+      - --log-bin-trust-function-creators=1
+      - --max-allowed-packet=64M
+    ports:
+      - "127.0.0.1:3391:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: magento
+      MYSQL_DATABASE: magento
+      MYSQL_USER: magento
+      MYSQL_PASSWORD: magento
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -pmagento --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+  opensearch:
+    image: opensearchproject/opensearch:2.19.7
+    environment:
+      discovery.type: single-node
+      DISABLE_SECURITY_PLUGIN: "true"
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+      OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
+      # A nearly full host disk would flip the indices to read-only.
+      cluster.routing.allocation.disk.threshold_enabled: "false"
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s' >/dev/null"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 60s
+
+volumes:
+  magento_html:
+  mysql_data:
+  opensearch_data:
