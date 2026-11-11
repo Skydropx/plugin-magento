@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<ruleset name="Skydropx Magento 2 Module">
+  <description>PHPCS rules for the Skydropx_Shipping Magento 2 module: the Magento2 coding standard plus PHPCompatibility for PHP 8.1-8.4 (HU D3).</description>
+
+  <file>plugin-source</file>
+
+  <!-- Unit tests are not shipped (the build drops Test/) and follow PHPUnit conventions. -->
+  <exclude-pattern>*/Test/*</exclude-pattern>
+
+  <arg name="cache" value=".phpcs-cache"/>
+  <arg name="colors"/>
+  <arg value="sp"/>
+
+  <!-- Magento 2.4.4-2.4.6 run on PHP 8.1, 2.4.8 up to 8.4. -->
+  <config name="testVersion" value="8.1-8.4"/>
+
+  <rule ref="Magento2"/>
+  <rule ref="PHPCompatibility"/>
+</ruleset>

@@ -1,0 +1,8 @@
+.DS_Store
+/builds/*
+!/builds/.gitkeep
+/vendor
+.phpcs-cache
+.tmp-build
+.idea/
+.vscode/
