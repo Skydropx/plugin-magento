@@ -1,0 +1,181 @@
+<?php
+/**
+ * Connection panel (HU §6.4.6). Lives inside Magento's config form: no <form> here (OD-7).
+ *
+ * @var \Skydropx\Shipping\Block\Adminhtml\System\Config\ConnectionPanel $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer
+ */
+
+$panelId = 'skydropx-connection-panel';
+$brand = $block->getBrandName();
+$state = $block->getConnectionState();
+$connected = $block->isConnected();
+$details = $block->getConnectionDetails();
+$logo = $block->getLogoDataUri();
+$blocker = $block->getOneClickBlocker();
+$ratesHealth = $block->getRatesHealth();
+$pushStats = $block->getPushStats();
+?>
+<div id="<?= $escaper->escapeHtmlAttr($panelId) ?>"
+     class="skydropx-connection-panel"
+     data-form-key="<?= $escaper->escapeHtmlAttr($block->getFormKey()) ?>">
+    <?php if ($logo !== null): ?>
+        <p><img src="<?= $escaper->escapeHtmlAttr($logo) ?>"
+                alt="<?= $escaper->escapeHtmlAttr($brand) ?>" height="40"/></p>
+    <?php endif; ?>
+
+    <p>
+        <strong><?= $escaper->escapeHtml(__('Status:')) ?></strong>
+        <span data-role="connection-state" data-state="<?= $escaper->escapeHtmlAttr($state) ?>">
+            <?= $escaper->escapeHtml($block->getStateLabel()) ?>
+        </span>
+    </p>
+
+    <?php if ($connected): ?>
+        <ul>
+            <?php if ($details['shop_id'] !== null): ?>
+                <li><?= $escaper->escapeHtml(__('Store ID: %1', $details['shop_id'])) ?></li>
+            <?php endif; ?>
+            <?php if ($details['store_url'] !== null): ?>
+                <li><?= $escaper->escapeHtml(__('Connected URL: %1', $details['store_url'])) ?></li>
+            <?php endif; ?>
+            <?php if ($details['connected_at'] !== null): ?>
+                <li><?= $escaper->escapeHtml(__('Connected at: %1', $details['connected_at'])) ?></li>
+            <?php endif; ?>
+        </ul>
+    <?php endif; ?>
+
+    <p><small><?= $escaper->escapeHtml($block->getPackageInfo()) ?></small></p>
+
+    <?php if (!$block->isCarrierActive()): ?>
+        <div class="message message-warning">
+            <?= $escaper->escapeHtml(
+                __('Rates are not shown at your checkout until you set "Enabled" to Yes.')
+            ) ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($connected): ?>
+        <p><?= $escaper->escapeHtml($ratesHealth ?? __('No rates requests yet.')) ?></p>
+        <?php if ($pushStats !== null): ?>
+            <?php $lastSent = $pushStats['last_sent_at'] ?? __('never'); ?>
+            <p>
+                <?= $escaper->escapeHtml(__(
+                    'Orders sent automatically: %1 pending · %2 failed · last sent: %3',
+                    $pushStats['pending'],
+                    $pushStats['failed'],
+                    $lastSent
+                )) ?>
+            </p>
+            <?php if ($block->isPushStale($pushStats)): ?>
+                <div class="message message-warning" data-role="push-stale">
+                    <?= $escaper->escapeHtml(
+                        __('Orders have been waiting for more than 15 minutes. Is the Magento cron running?')
+                    ) ?>
+                </div>
+            <?php endif; ?>
+        <?php endif; ?>
+    <?php endif; ?>
+
+    <div class="skydropx-connection-actions">
+        <?php if ($blocker !== null): ?>
+            <div class="message message-notice" data-role="one-click-blocked">
+                <?= $escaper->escapeHtml($blocker) ?>
+            </div>
+        <?php elseif ($block->isBearerConsentNeeded()): ?>
+            <p>
+                <label>
+                    <input type="checkbox" data-role="enable-bearer" value="1"/>
+                    <?= $escaper->escapeHtml(__('Allow integration tokens as Bearer (required to connect)')) ?>
+                </label>
+            </p>
+        <?php endif; ?>
+
+        <button type="button"
+                class="action-primary"
+                data-role="skydropx-action"
+                data-action="connect"
+                data-url="<?= $escaper->escapeUrl($block->getStartUrl()) ?>"
+                <?= $blocker !== null ? 'disabled="disabled"' : '' ?>>
+            <span><?= $escaper->escapeHtml($connected ? __('Reconnect') : __('Connect with %1', $brand)) ?></span>
+        </button>
+
+        <?php if ($connected): ?>
+            <button type="button"
+                    class="action-secondary"
+                    data-role="skydropx-action"
+                    data-action="test"
+                    data-url="<?= $escaper->escapeUrl($block->getTestUrl()) ?>">
+                <span><?= $escaper->escapeHtml(__('Test connection')) ?></span>
+            </button>
+            <button type="button"
+                    class="action-secondary"
+                    data-role="skydropx-action"
+                    data-action="disconnect"
+                    data-url="<?= $escaper->escapeUrl($block->getDisconnectUrl()) ?>"
+                    data-confirm="<?= $escaper->escapeHtmlAttr(__(
+                        'Disconnect this store? Rates and order sync stop until you connect again.'
+                    )) ?>">
+                <span><?= $escaper->escapeHtml(__('Disconnect')) ?></span>
+            </button>
+        <?php endif; ?>
+
+        <?php if ($blocker === null): ?>
+            <p><small><?= $escaper->escapeHtml(__(
+                'After clicking Connect, finish the confirmation in %1 within 10 minutes; '
+                . 'otherwise click Connect again.',
+                $brand
+            )) ?></small></p>
+        <?php endif; ?>
+    </div>
+
+    <p data-role="manual-guide">
+        <small>
+            <?= $escaper->escapeHtml(__(
+                'Manual connection: in %1 › My stores › your store › Settings › Extension, copy the store ID and '
+                . 'generate the signing key, then paste both in the fields below and save.',
+                $brand
+            )) ?>
+            <a href="<?= $escaper->escapeUrl($block->getStoresUrl()) ?>" target="_blank" rel="noopener noreferrer">
+                <?= $escaper->escapeHtml(__('Open My stores')) ?>
+            </a>
+        </small>
+    </p>
+</div>
+<?php
+$script = <<<JS
+(function () {
+    var panel = document.getElementById('{$escaper->escapeJs($panelId)}');
+    if (!panel) {
+        return;
+    }
+    Array.prototype.forEach.call(panel.querySelectorAll('[data-role="skydropx-action"]'), function (button) {
+        button.addEventListener('click', function () {
+            var message = button.getAttribute('data-confirm');
+            if (button.disabled || (message && !window.confirm(message))) {
+                return;
+            }
+            var fields = {form_key: panel.getAttribute('data-form-key')};
+            var bearer = panel.querySelector('[data-role="enable-bearer"]');
+            if (button.getAttribute('data-action') === 'connect' && bearer && bearer.checked) {
+                fields.enable_bearer = '1';
+            }
+            var form = document.createElement('form');
+            form.method = 'post';
+            form.action = button.getAttribute('data-url');
+            Object.keys(fields).forEach(function (name) {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = fields[name];
+                form.appendChild(input);
+            });
+            document.body.appendChild(form);
+            form.submit();
+        });
+    });
+})();
+JS;
+?>
+<?= /* @noEscape */ $secureRenderer->renderTag('script', [], $script, false) ?>

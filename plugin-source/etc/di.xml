@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- Dedicated logger: var/log/skydropx.log, context redacted by the logger itself. -->
+    <type name="Skydropx\Shipping\Logger\Handler">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </type>
+    <type name="Skydropx\Shipping\Logger\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">skydropx</argument>
+            <argument name="handler" xsi:type="object">Skydropx\Shipping\Logger\Handler</argument>
+        </arguments>
+    </type>
+
+    <!-- Overrides the VirtualLogger that Magento_Shipping sets on AbstractCarrier and every carrier inherits. -->
+    <type name="Skydropx\Shipping\Model\Carrier\Skydropx">
+        <arguments>
+            <argument name="logger" xsi:type="object">Skydropx\Shipping\Logger\Logger</argument>
+        </arguments>
+    </type>
+
+    <!-- bin/magento skydropx:orders:push; the proxy keeps bin/magento from building the publisher. -->
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="skydropx_orders_push" xsi:type="object">Skydropx\Shipping\Console\Command\PushOrders</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Skydropx\Shipping\Console\Command\PushOrders">
+        <arguments>
+            <argument name="publisher" xsi:type="object">Skydropx\Shipping\Model\OrderPush\Publisher\Proxy</argument>
+        </arguments>
+    </type>
+
+    <!-- Keep the signing secret out of app:config:dump output. -->
+    <type name="Magento\Config\Model\Config\TypePool">
+        <arguments>
+            <argument name="sensitive" xsi:type="array">
+                <item name="carriers/skydropx/signing_secret" xsi:type="string">1</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

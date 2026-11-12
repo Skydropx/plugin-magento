@@ -1,0 +1,21 @@
+{
+  "plugin_name": "Solo Envíos",
+  "plugin_slug": "solo-envios",
+  "plugin_description": "Solución completa de envíos para tu tienda Magento. Cotiza y gestiona envíos con múltiples paqueterías de forma sencilla y eficaz.",
+  "plugin_author": "Solo Envíos",
+  "plugin_author_uri": "https://app.soloenvios.com",
+  "urls": {
+    "local": {
+      "ecommerce": "NGROK_URL",
+      "app": "http://soloenvios.localhost.soloenvios:3000"
+    },
+    "sandbox": {
+      "ecommerce": "https://sb-ecommerce.soloenvios.com",
+      "app": "https://sb-app.soloenvios.com"
+    },
+    "production": {
+      "ecommerce": "https://ecommerce.soloenvios.com",
+      "app": "https://app.soloenvios.com"
+    }
+  }
+}

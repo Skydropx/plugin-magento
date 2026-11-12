@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="carriers">
+            <group id="skydropx" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>PLUGIN_NAME</label>
+                <field id="connection_panel" sortOrder="0" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <frontend_model>Skydropx\Shipping\Block\Adminhtml\System\Config\ConnectionPanel</frontend_model>
+                </field>
+                <field id="active" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" canRestore="1">
+                    <label>Enabled</label>
+                    <comment>Shows the rates at checkout. Order push does not depend on this setting.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Title</label>
+                </field>
+                <field id="shop_id" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Store ID</label>
+                    <comment>Filled in by the one-click connection. To connect manually, copy it from My stores › your store › Settings › Extension.</comment>
+                    <backend_model>Skydropx\Shipping\Model\Config\Backend\ShopId</backend_model>
+                </field>
+                <field id="signing_secret" translate="label comment" type="obscure" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Signing Key</label>
+                    <comment>Generated in My stores › your store › Settings › Extension. It is stored encrypted and never shown again.</comment>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
+                <field id="order_push" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Send Orders Automatically</label>
+                    <comment>Requires the Magento cron to be running.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="length_attribute" translate="label comment" type="select" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Length Attribute</label>
+                    <comment>Product attribute that holds the length. Leave empty if your products have none.</comment>
+                    <source_model>Skydropx\Shipping\Model\Config\Source\ProductAttribute</source_model>
+                </field>
+                <field id="width_attribute" translate="label comment" type="select" sortOrder="61" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Width Attribute</label>
+                    <comment>Product attribute that holds the width. Leave empty if your products have none.</comment>
+                    <source_model>Skydropx\Shipping\Model\Config\Source\ProductAttribute</source_model>
+                </field>
+                <field id="height_attribute" translate="label comment" type="select" sortOrder="62" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Height Attribute</label>
+                    <comment>Product attribute that holds the height. Leave empty if your products have none.</comment>
+                    <source_model>Skydropx\Shipping\Model\Config\Source\ProductAttribute</source_model>
+                </field>
+                <field id="specificerrmsg" translate="label" type="textarea" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Displayed Error Message</label>
+                </field>
+                <field id="sallowspecific" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1" canRestore="1">
+                    <label>Ship to Applicable Countries</label>
+                    <frontend_class>shipping-applicable-country</frontend_class>
+                    <source_model>Magento\Shipping\Model\Config\Source\Allspecificcountries</source_model>
+                </field>
+                <field id="specificcountry" translate="label" type="multiselect" sortOrder="91" showInDefault="1" showInWebsite="1">
+                    <label>Ship to Specific Countries</label>
+                    <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                    <can_be_empty>1</can_be_empty>
+                </field>
+                <field id="showmethod" translate="label" type="select" sortOrder="92" showInDefault="1" showInWebsite="1">
+                    <label>Show Method if Not Applicable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <frontend_class>shipping-skip-hide</frontend_class>
+                </field>
+                <field id="sort_order" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1">
+                    <label>Sort Order</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                </field>
+                <field id="debug" translate="label comment" type="select" sortOrder="110" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Debug Log</label>
+                    <comment>Writes request and response bodies, with secrets redacted, to the module log in var/log.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <carriers>
+            <skydropx>
+                <active>0</active>
+                <model>Skydropx\Shipping\Model\Carrier\Skydropx</model>
+                <title>PLUGIN_NAME</title>
+                <shop_id/>
+                <signing_secret backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
+                <order_push>1</order_push>
+                <length_attribute/>
+                <width_attribute/>
+                <height_attribute/>
+                <sallowspecific>1</sallowspecific>
+                <specificcountry>MX</specificcountry>
+                <showmethod>0</showmethod>
+                <specificerrmsg>This shipping method is not available. To use this shipping method, please contact us.</specificerrmsg>
+                <sort_order>10</sort_order>
+                <debug>0</debug>
+                <rates_timeout>4</rates_timeout>
+                <rates_cache_ttl>300</rates_cache_ttl>
+                <connection_mode/>
+                <integration_id/>
+                <connected_store_url/>
+                <connected_at/>
+            </skydropx>
+        </carriers>
+    </default>
+</config>

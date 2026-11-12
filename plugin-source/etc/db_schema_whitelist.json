@@ -1,0 +1,28 @@
+{
+    "skydropx_order_event": {
+        "column": {
+            "event_id": true,
+            "order_id": true,
+            "increment_id": true,
+            "store_id": true,
+            "event": true,
+            "state": true,
+            "status": true,
+            "payload": true,
+            "delivery_status": true,
+            "attempts": true,
+            "next_attempt_at": true,
+            "last_error": true,
+            "created_at": true,
+            "sent_at": true
+        },
+        "index": {
+            "SKYDROPX_ORDER_EVENT_DELIVERY_STATUS_NEXT_ATTEMPT_AT": true,
+            "SKYDROPX_ORDER_EVENT_CREATED_AT": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "SKYDROPX_ORDER_EVENT_ORDER_ID_EVENT_STATE": true
+        }
+    }
+}
